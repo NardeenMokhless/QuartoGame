@@ -32,10 +32,6 @@
 bestMove(Pos, NextPos , AllPieces) :-
   minimax(Pos, NextPos, _ , AllPieces).
 
-
-bestMove(Pos, NextPos , [CurrentPiece|Left] , Result) :-
-  minimax(Pos, NextPos, _ , CurrentPiece),
-  bestMove(Pos , NextPos , Left , Result).
  
 
 indexOf([Element|_], Element, 1):- !.
@@ -81,12 +77,12 @@ playFirst :-
       show(EmptyBoard), nl,
   
 % Start the game with color and emptyBoard
-      play([Player, play, EmptyBoard], Pieces)
+      play([Player, play, EmptyBoard , Pieces])
     ).
 
 
 
-play([Player, play, Board], AllPieces) :-
+play([Player, play, Board , AllPieces]) :-
   Player == 0,
   %playAskPiece(Board , AllPieces , Player, Result) ,nl,
   length(AllPieces , L),
@@ -108,10 +104,10 @@ play([Player, play, Board], AllPieces) :-
       nl, write('End of game : '),
       write(' draw !'), nl, nl
       ;
-      play([NextPlayer, play, NextBoard],NewAllPieces)
+      play([NextPlayer, play, NextBoard , NewAllPieces])
     );
     write('-> Bad Move !'), nl,
-    play([Player, play, Board],NewAllPieces)
+    play([Player, play, Board , NewAllPieces])
   ).
 
 
@@ -123,7 +119,7 @@ play([Player, play, Board], AllPieces) :-
 
 % Compute the best move for computer with minimax or alpha-beta.
 
-play([Player, play, Board],AllPieces):-
+play([Player, play, Board , AllPieces]):-
   !, Player == 1,
   nl, write('Computer play : '), nl, nl,
   length(AllPieces , L),
@@ -132,7 +128,7 @@ play([Player, play, Board],AllPieces):-
   nth1(R,AllPieces,Result),nl,
   currentPieceShow(Result),nl,
   delete(AllPieces,Result,NewAllPieces),
-  bestMove([Player, play, Board], [NextPlayer, State, BestSuccBoard] , Result),
+  bestMove([Player, play, Board, NewAllPieces], [NextPlayer, State, BestSuccBoard , _] , Result),
   show(BestSuccBoard),
   (
     State = win, !,
@@ -142,7 +138,7 @@ play([Player, play, Board],AllPieces):-
     State = draw, !,
     nl, write('End of game : '), write(' draw !'), nl, nl;
 
-    play([NextPlayer, play, BestSuccBoard],  NewAllPieces)
+    play([NextPlayer, play, BestSuccBoard , NewAllPieces])
   ).
 
 
@@ -247,19 +243,19 @@ show2([A , B , C]) :-
 % Best move from Pos leads to position BestNextPos.
 minimax(Pos, BestNextPos, Val , CurrentPiece) :-                     % Pos has successors
     bagof(NextPos, move(Pos, NextPos , CurrentPiece), NextPosList),
-    best(NextPosList, BestNextPos, Val , CurrentPiece),!.
+    best(NextPosList, BestNextPos, Val),!.
 
 minimax(Pos, _, Val , _) :-                     % Pos has no successors
     utility(Pos, Val).  
 
 
-best([Pos], Pos, Val , AllCurrentPieces) :-
-    minimax(Pos, _, Val , AllCurrentPieces), !.
+best([Pos], Pos, Val) :-
+    minimax(Pos, _, Val , _), !.
 
-best([Pos1 | PosList], BestPos, BestVal , AllPieces) :-
-    minimax(Pos1, _, Val1 , AllPieces),
-    best(PosList, Pos2, Val2 , AllPieces),
-    betterOf(Pos1, Val1, Pos2, Val2, BestPos, BestVal).
+best([ [Player, State , Board , [NextPiece | Rest]] | PosList], BestPos, BestVal) :-
+    minimax([Player, State , Board , Rest], _, Val1 , NextPiece),
+    best(PosList, Pos2, Val2 ),
+    betterOf([Player, State , Board , [NextPiece | Rest]], Val1, Pos2, Val2, BestPos, BestVal).
 
 
 
@@ -282,7 +278,7 @@ betterOf(_, _, Pos1, Val1, Pos1, Val1).        % Otherwise Pos1 better than Pos0
 
 % True if there is a legal (according to rules) move from Pos to NextPos.
 
-move([X1, play, Board],[X2, win, NextBoard] , CurrentPiece) :-
+move([X1, play, Board , Pieces],[X2, win, NextBoard , Pieces] , CurrentPiece) :-
 
  nextPlayer(X1, X2),
 
@@ -294,7 +290,7 @@ nextPlayer(1,0).
 nextPlayer(0,1).
 
 
-move([X1, play, Board],[X2, draw, NextBoard] , CurrentPiece) :-
+move([X1, play, Board , Pieces],[X2, draw, NextBoard , Pieces] , CurrentPiece) :-
 
  nextPlayer(X1, X2),
 
@@ -304,7 +300,7 @@ move([X1, play, Board],[X2, draw, NextBoard] , CurrentPiece) :-
 
 
 
-move([X1, play, Board], [X2, play, NextBoard], CurrentPiece) :-
+move([X1, play, Board , Pieces], [X2, play, NextBoard , Pieces], CurrentPiece) :-
  nextPlayer(X1, X2),
 
  move_aux(CurrentPiece, Board, NextBoard).
@@ -327,14 +323,14 @@ move_aux(P, [B|Bs], [B|B2s]) :-
 
 % True if the next player to play is the MIN player.
 
-min_to_move([0, _, _]).
+min_to_move([0, _, _ , _]).
 
 
 % max_to_move(+Pos)
 
 % True if the next player to play is the MAX player.
 
-max_to_move([1, _, _]).
+max_to_move([1, _, _ , _]).
 
 
 % utility(+Pos, -Val) :-
@@ -351,13 +347,13 @@ max_to_move([1, _, _]).
 
 %              0 otherwise.
 
-utility([1, win, _], 1).
+utility([1, win, _ , _], 1).
 % Previous player (MAX) has win.
 
-utility([0, win, _], -1).
+utility([0, win, _ , _], -1).
 % Previous player (MIN) has win.
 
-utility([_, draw, _], 0).
+utility([_, draw, _ , _], 0).
 
 
 % winPos(+Player, +Board)
