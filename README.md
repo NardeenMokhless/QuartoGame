@@ -5,7 +5,7 @@ Quarto game Implemented in prolog.
 * [First](https://github.com/NardeenMokhless/QuartoGame/blob/master/original.pl) :
   * You will find it in original.pl.
   * Simple implementation for minimax algorithm without UI.
-* [Second](https://github.com/NardeenMokhless/QuartoGame/blob/master/Project/quarto.pl) :
+* [Second](https://github.com/NardeenMokhless/QuartoGame/blob/master/Project) :
   * You will find it in project folder.
   * It's the same prolog code just modified to apply Java UI on it.
 
