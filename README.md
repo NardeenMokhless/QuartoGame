@@ -20,14 +20,14 @@ Quarto game Implemented in prolog.
   * A random piece is given for the computer and the player.
 
 ## Screenshots
-* CommandLine play
+* Commandline gameplay :
   * ![Overall play](https://github.com/NardeenMokhless/QuartoGame/blob/master/Screenshots/OverallGame.png)
 
   * ![Player Win](https://github.com/NardeenMokhless/QuartoGame/blob/master/Screenshots/WIN.png)
   
   * ![Computer Win](https://github.com/NardeenMokhless/QuartoGame/blob/master/Screenshots/overallComputerWin.png)
 
-* Graphic UI play
+* Java GUI gameplay :
   * ![Player Win](https://github.com/NardeenMokhless/QuartoGame/blob/master/Screenshots/PlayerWinner.png)
   
   * ![Computer Win](https://github.com/NardeenMokhless/QuartoGame/blob/master/Screenshots/GUIComputerWin.png)
