@@ -29,8 +29,8 @@
 
 % with minimax or alpha-beta algorithm.
 
-bestMove(Pos, NextPos , AllPieces) :-
-  minimax(Pos, NextPos, _ , AllPieces).
+bestMove(Pos, NextPos , AllPieces , FirstPlayer) :-
+  minimax(Pos, NextPos, _ , AllPieces , FirstPlayer).
 
  
 
@@ -77,12 +77,12 @@ playFirst :-
       show(EmptyBoard), nl,
   
 % Start the game with color and emptyBoard
-      play([Player, play, EmptyBoard , Pieces])
+      play([Player, play, EmptyBoard , Pieces] , Player)
     ).
 
 
 
-play([Player, play, Board , AllPieces]) :-
+play([Player, play, Board , AllPieces], FirstPlayer) :-
   Player == 0,
   %playAskPiece(Board , AllPieces , Player, Result) ,nl,
   length(AllPieces , L),
@@ -104,10 +104,10 @@ play([Player, play, Board , AllPieces]) :-
       nl, write('End of game : '),
       write(' draw !'), nl, nl
       ;
-      play([NextPlayer, play, NextBoard , NewAllPieces])
+      play([NextPlayer, play, NextBoard , NewAllPieces] , FirstPlayer)
     );
     write('-> Bad Move !'), nl,
-    play([Player, play, Board , NewAllPieces])
+    play([Player, play, Board , NewAllPieces] , FirstPlayer)
   ).
 
 
@@ -119,7 +119,7 @@ play([Player, play, Board , AllPieces]) :-
 
 % Compute the best move for computer with minimax or alpha-beta.
 
-play([Player, play, Board , AllPieces]):-
+play([Player, play, Board , AllPieces] , FirstPlayer):-
   !, Player == 1,
   nl, write('Computer play : '), nl, nl,
   length(AllPieces , L),
@@ -128,7 +128,7 @@ play([Player, play, Board , AllPieces]):-
   nth1(R,AllPieces,Result),nl,
   currentPieceShow(Result),nl,
   delete(AllPieces,Result,NewAllPieces),
-  bestMove([Player, play, Board, NewAllPieces], [NextPlayer, State, BestSuccBoard , _] , Result),
+  bestMove([Player, play, Board, NewAllPieces], [NextPlayer, State, BestSuccBoard , _] , Result , FirstPlayer),
   show(BestSuccBoard),
   (
     State = win, !,
@@ -138,7 +138,7 @@ play([Player, play, Board , AllPieces]):-
     State = draw, !,
     nl, write('End of game : '), write(' draw !'), nl, nl;
 
-    play([NextPlayer, play, BestSuccBoard , NewAllPieces])
+    play([NextPlayer, play, BestSuccBoard , NewAllPieces] , FirstPlayer)
   ).
 
 
@@ -196,11 +196,11 @@ show([X1, X2, X3, X4, X5, X6, X7, X8, X9]) :-
   write('   '), show2(X1),
   write(' | '), show2(X2),
   write(' | '), show2(X3), nl,
-  write('  -----------'), nl,
+  write('  ---------------------------------'), nl,
   write('   '), show2(X4),
   write(' | '), show2(X5),
   write(' | '), show2(X6), nl,
-  write('  -----------'), nl,
+  write('  ---------------------------------'), nl,
   write('   '), show2(X7), 
   write(' | '), show2(X8),
   write(' | '), show2(X9), nl.
@@ -224,7 +224,7 @@ showPieces([] , _):- !.
 
 show2(X) :-
   X = 0, !,
-  write(' ').
+  write('        ').
 
 
 show2([A , B , C]) :-
@@ -241,32 +241,32 @@ show2([A , B , C]) :-
 % minimax(Pos, BestNextPos, Val)
 % Pos is a position, Val is its minimax value.
 % Best move from Pos leads to position BestNextPos.
-minimax(Pos, BestNextPos, Val , CurrentPiece) :-                     % Pos has successors
+minimax(Pos, BestNextPos, Val , CurrentPiece , FirstPlayer) :-                     % Pos has successors
     bagof(NextPos, move(Pos, NextPos , CurrentPiece), NextPosList),
-    best(NextPosList, BestNextPos, Val),!.
+    best(NextPosList, BestNextPos, Val , FirstPlayer),!.
 
-minimax(Pos, _, Val , _) :-                     % Pos has no successors
-    utility(Pos, Val).  
-
-
-best([Pos], Pos, Val) :-
-    minimax(Pos, _, Val , _), !.
-
-best([ [Player, State , Board , [NextPiece | Rest]] | PosList], BestPos, BestVal) :-
-    minimax([Player, State , Board , Rest], _, Val1 , NextPiece),
-    best(PosList, Pos2, Val2 ),
-    betterOf([Player, State , Board , [NextPiece | Rest]], Val1, Pos2, Val2, BestPos, BestVal).
+minimax(Pos, _, Val , _ , FirstPlayer) :-                     % Pos has no successors
+    utility(Pos, Val , FirstPlayer).  
 
 
+best([Pos], Pos, Val , FirstPlayer) :-
+    minimax(Pos, _, Val , _ , FirstPlayer), !.
 
-betterOf(Pos0, Val0, _, Val1, Pos0, Val0) :-   % Pos0 better than Pos1
-    max_to_move(Pos0),                         % MIN to move in Pos0
+best([ [Player, State , Board , [NextPiece | Rest]] | PosList], BestPos, BestVal , FirstPlayer) :-
+    minimax([Player, State , Board , Rest], _, Val1 , NextPiece , FirstPlayer),
+    best(PosList, Pos2, Val2 , FirstPlayer),
+    betterOf([Player, State , Board , [NextPiece | Rest]], Val1, Pos2, Val2, BestPos, BestVal , FirstPlayer).
+
+
+
+betterOf(Pos0, Val0, _, Val1, Pos0, Val0 , FirstPlayer) :-   % Pos0 better than Pos1
+    max_to_move(Pos0 , FirstPlayer),                         % MIN to move in Pos0
     Val1 > Val0, !                             % MAX prefers the greater value
     ;
-    min_to_move(Pos0),                         % MAX to move in Pos0
+    min_to_move(Pos0 , FirstPlayer),                         % MAX to move in Pos0
     Val0 > Val1, !.                            % MIN prefers the lesser value
 
-betterOf(_, _, Pos1, Val1, Pos1, Val1).        % Otherwise Pos1 better than Pos0
+betterOf(_, _, Pos1, Val1, Pos1, Val1 , FirstPlayer).        % Otherwise Pos1 better than Pos0
 
 
 
@@ -323,15 +323,18 @@ move_aux(P, [B|Bs], [B|B2s]) :-
 
 % True if the next player to play is the MIN player.
 
-min_to_move([0, _, _ , _]).
+min_to_move([0, _, _ , _] , 1).
 
 
 % max_to_move(+Pos)
 
 % True if the next player to play is the MAX player.
 
-max_to_move([1, _, _ , _]).
+max_to_move([1, _, _ , _] , 1).
 
+min_to_move([1, _, _ , _] , 0).
+
+max_to_move([0, _, _ , _] , 0).
 
 % utility(+Pos, -Val) :-
 
@@ -347,13 +350,17 @@ max_to_move([1, _, _ , _]).
 
 %              0 otherwise.
 
-utility([1, win, _ , _], 1).
+utility([1, win, _ , _], 1 , 1).
 % Previous player (MAX) has win.
 
-utility([0, win, _ , _], -1).
+utility([0, win, _ , _], -1 , 1).
+
+utility([0, win, _ , _], 1 , 0).
+
+utility([1, win, _ , _], -1 , 0).
 % Previous player (MIN) has win.
 
-utility([_, draw, _ , _], 0).
+utility([_, draw, _ , _], 0 , _).
 
 
 % winPos(+Player, +Board)
@@ -427,19 +434,19 @@ currentPieceShow(Piece):-
 
 showChar(X) :-
   X = black, !,
-  write('b').
+  write(' b').
 
 showChar(X) :-
   X = white, !,
-  write('w').
+  write(' w').
 
 showChar(X) :-
   X = round, !,
-  write('r').
+  write(' r').
 
 showChar(X) :-
   X = square, !,
-  write('s').
+  write(' s').
 
 showChar(X) :-
   X = short, !,
@@ -447,4 +454,4 @@ showChar(X) :-
 
 showChar(X) :-
   X = tall, !,
-  write('t').
+  write(' t').
