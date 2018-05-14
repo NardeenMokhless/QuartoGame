@@ -18,3 +18,13 @@ Quarto game Implemented in prolog.
   * 3*3 grid.
   * Three characteristics for each piece.
   * A random piece is given for the computer and the player.
+
+## Screenshots
+* CommandLine play
+  * ![Overall play](https://github.com/NardeenMokhless/QuartoGame/blob/master/Screenshots/OverallGame.png)
+  * ![Player Win](https://github.com/NardeenMokhless/QuartoGame/blob/master/Screenshots/WIN.png)
+  * ![Computer Win](https://github.com/NardeenMokhless/QuartoGame/blob/master/Screenshots/overallComputerWin.png)
+
+* Graphic UI play
+  * ![Player Win](https://github.com/NardeenMokhless/QuartoGame/blob/master/Screenshots/PlayerWinner.png)
+  * ![Computer Win](https://github.com/NardeenMokhless/QuartoGame/blob/master/Screenshots/GUIComputerWin.png)
